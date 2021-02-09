@@ -106,6 +106,12 @@ vector<descript_socket*> TCPServer::getMessage()
 	return Message;
 }
 
+void TCPServer::Broadcast(string msg)
+{
+	for(unsigned int i=0; i<newsockfd.size(); i++)
+		this->Send(msg, i);
+}
+
 void TCPServer::Send(string msg, int id)
 {
 	send(newsockfd[id]->socket,msg.c_str(),msg.length(),0);

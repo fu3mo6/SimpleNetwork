@@ -4,84 +4,103 @@
 #include "TCPServer.h"
 
 TCPServer tcp;
-pthread_t msg1[MAX_CLIENT];
-int num_message = 0;
-int time_send   = 2700;
+int state = -1;
+int count_limit = -1;
+std::mutex mt;
+
+bool isPrime(int n)
+{
+	if(n <= 1)
+		return false;
+	int i = 2;
+	for(; i*i<=n; i++)
+	{
+		if(n%i==0)
+			return false;
+	}
+	return true;
+}
 
 void close_app(int s) {
 	tcp.closed();
 	exit(0);
 }
 
-void * send_client(void * m) {
-        struct descript_socket *desc = (struct descript_socket*) m;
+std::string handle_count(int id, int count)
+{
+	std::lock_guard<std::mutex> guard(mt);
+	std::string msg = "";
+	std::string broadcast = "";
 
-	while(1) {
-		if(!tcp.is_online() && tcp.get_last_closed_sockets() == desc->id) {
-			cerr << "Connessione chiusa: stop send_clients( id:" << desc->id << " ip:" << desc->ip << " )"<< endl;
-			break;
+	if (state < 0)
+	{
+		msg = "ack";
+		tcp.Send(msg, id);
+		if(isPrime(count))
+		{
+			state = id;
+			count_limit = count * 2;
 		}
-		std::time_t t = std::time(0);
-		std::tm* now = std::localtime(&t);
-		int hour = now->tm_hour;
-		int min  = now->tm_min;
-		int sec  = now->tm_sec;
-
-		std::string date = 
-			    to_string(now->tm_year + 1900) + "-" +
-			    to_string(now->tm_mon + 1)     + "-" +
-			    to_string(now->tm_mday)        + " " +
-			    to_string(hour)                + ":" +
-			    to_string(min)                 + ":" +
-			    to_string(sec)                 + "\r\n";
-		cerr << date << endl;
-		tcp.Send(date, desc->id);
-		sleep(time_send);
 	}
-	pthread_exit(NULL);
-	return 0;
+	else if (state == id)
+	{
+		msg = "ack";
+		tcp.Send(msg, id);
+		if(count == count_limit)
+		{
+			state = -1;
+			count_limit = -1;
+			broadcast = "active";
+		}
+	}
+	else
+	{
+		msg = "inactive";
+		tcp.Send(msg, id);
+	}
+	return broadcast;
 }
 
 void * received(void * m)
 {
-        pthread_detach(pthread_self());
+    pthread_detach(pthread_self());
+	cout << "start new thread: received" << endl;
+	std::string msg;
 	vector<descript_socket*> desc;
 	while(1)
 	{
 		desc = tcp.getMessage();
 		for(unsigned int i = 0; i < desc.size(); i++) {
-			if( desc[i]->message != "" )
+			if( desc[i]->message != "")
 			{
-				if(!desc[i]->enable_message_runtime) 
-				{
-					desc[i]->enable_message_runtime = true;
-			                if( pthread_create(&msg1[num_message], NULL, send_client, (void *) desc[i]) == 0) {
-						cerr << "ATTIVA THREAD INVIO MESSAGGI" << endl;
-					}
-					num_message++;
-					// start message background thread
+				int count = stoi(desc[i]->message);
+
+				cout << desc[i]->id 
+					 << " count " << count 
+					 << " state " << state
+					 << " limit " << count_limit
+					 << endl;
+
+				msg = handle_count(desc[i]->id, count);
+				if ( msg != ""){
+					cout << "Broadcast "<< msg<<endl;
+					tcp.Broadcast(msg);
 				}
-				cout << "id:      " << desc[i]->id      << endl
-				     << "ip:      " << desc[i]->ip      << endl
-				     << "message: " << desc[i]->message << endl
-				     << "socket:  " << desc[i]->socket  << endl
-				     << "enable:  " << desc[i]->enable_message_runtime << endl;
 				tcp.clean(i);
 			}
 		}
 		usleep(1000);
 	}
+	cout << "End thread: received" << endl;
 	return 0;
 }
 
 int main(int argc, char **argv)
 {
 	if(argc < 2) {
-		cerr << "Usage: ./server port (opt)time-send" << endl;
+		cerr << "Usage: ./server port" << endl;
 		return 0;
 	}
-	if(argc == 3)
-		time_send = atoi(argv[2]);
 	std::signal(SIGINT, close_app);
 
 	pthread_t msg;

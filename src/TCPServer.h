@@ -39,6 +39,7 @@ class TCPServer
 	vector<descript_socket*> getMessage();
 	void accepted();
 	void Send(string msg, int id);
+	void Broadcast(string msg);
 	void detach(int id);
 	void clean(int id);
         bool is_online();
