@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <cctype>
 #include <mutex>
+#include <unordered_map>
 
 using namespace std;
 
@@ -27,41 +28,31 @@ using namespace std;
 struct descript_socket{
 	int socket     = -1;
 	string ip      = "";
-	int id         = -1; 
-	std::string message;
-	bool enable_message_runtime = false;
+	int id         = -1;
 };
 
 class TCPServer
 {
-	public:
+public:
 	int setup(int port, vector<int> opts = vector<int>());
-	vector<descript_socket*> getMessage();
-	void accepted();
-	void Send(string msg, int id);
-	void Broadcast(string msg);
-	void detach(int id);
-	void clean(int id);
-        bool is_online();
-	string get_ip_addr(int id);
-	int get_last_closed_sockets();
-	void closed();
+	void loop();
+	void client_loop(descript_socket *desc);
 
-	private:
-	int sockfd, n, pid;
+	virtual void on_accept(int id) {}
+	virtual void on_recv(int id, std::string msg) {}
+	virtual void on_disconnect(int id) {}
+
+	void send_msg(int id, std::string msg);
+	void broadcast_msg(std::string msg);
+	void shutdown();
+
+private:
+	int sockfd;
 	struct sockaddr_in serverAddress;
 	struct sockaddr_in clientAddress;
-	pthread_t serverThread[ MAX_CLIENT ];
 
-	static vector<descript_socket*> newsockfd;
-	static char msg[ MAXPACKETSIZE ];
-	static vector<descript_socket*> Message;//[CODA_MSG];
-
-	static bool isonline;
-	static int last_closed;
-	static int num_client;
-	static std::mutex mt;
-	static void * Task(void * argv);
+	unordered_map<int, descript_socket*> client_sock;
+	int unique_id;
 };
 
 #endif
