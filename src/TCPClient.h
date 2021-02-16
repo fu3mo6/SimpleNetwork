@@ -15,22 +15,29 @@
 #include <vector>
 
 using namespace std;
-
 class TCPClient
 {
-  private:
+public:
+    TCPClient();
+    bool setup(std::string address, int port);
+    void loop();
+
+    virtual void on_connect() {}
+    virtual void on_recv(std::string msg) {}
+    virtual void on_disconnect() {}
+
+    virtual bool send_msg(std::string msg);
+    virtual std::string receive_msg();
+    void shutdown();
+
+    bool is_connected() { return connected; }
+
+private:
     int sock;
     std::string address;
     int port;
     struct sockaddr_in server;
-
-  public:
-    TCPClient();
-    bool setup(string address, int port);
-    bool Send(string data);
-    string receive(int size = 4096);
-    string read();
-    void exit();
+    bool connected;
 };
 
 #endif
