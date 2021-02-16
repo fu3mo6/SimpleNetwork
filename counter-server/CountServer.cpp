@@ -24,8 +24,8 @@ void CountServer::on_accept(int id)
 void CountServer::on_recv(int id, std::string msg)
 {
     int count = stoi(msg);
-    handle_count(id, count);
-    cout << "Recv [ " << id << " ] [ " << msg << " ] [ " << state << " ]" << endl;
+    if (handle_count(id, count))
+        cout << "Recv [ " << id << " ] [ " << msg << " ] [ " << state << " ]" << endl;
 }
 
 void CountServer::on_disconnect(int id)
@@ -42,10 +42,11 @@ void CountServer::on_disconnect(int id)
     }
 }
 
-void CountServer::handle_count(int id, int count)
+bool CountServer::handle_count(int id, int count)
 {
 	std::string msg = "";
 	std::string bcast = "";
+    bool accept = true;
 
     {
 	    std::lock_guard<std::mutex> guard(mt);
@@ -55,7 +56,7 @@ void CountServer::handle_count(int id, int count)
             if(isPrime(count))
             {
                 state = id;
-                count_timeout = count + 5;
+                count_timeout = count * 2;
             }
         }
         else if (state == id)
@@ -71,10 +72,13 @@ void CountServer::handle_count(int id, int count)
         else
         {
             msg = "inactive";
+            accept = false;
         }
     }
 
 	send_msg(id, msg);
     if(bcast != "")
         broadcast_msg(bcast);
+    
+    return accept;
 }
