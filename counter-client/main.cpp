@@ -19,8 +19,10 @@ int main(int argc, char **argv)
 
 	std::signal(SIGINT, close_app);
 
-	client.setup(argv[1],atoi(argv[2]));
-	client.loop();
-	
+	if(client.setup(argv[1],atoi(argv[2])))
+		client.loop();
+	else
+		cout << "Setup failed." << endl;
+
 	return 0;
 }

@@ -24,14 +24,12 @@ void CountClient::count_loop()
 			usleep(1000);
 		}
 	}
-	pthread_exit(NULL);
 }
 
 void CountClient::on_connect()
 {
 	cout << "Connection established." << endl;
-	std::thread cthread(&CountClient::count_loop, this);
-	cthread.detach();
+	count_thread = std::thread(&CountClient::count_loop, this);
 }
 
 void CountClient::on_recv(std::string msg)
@@ -53,4 +51,5 @@ void CountClient::on_recv(std::string msg)
 void CountClient::on_disconnect()
 {
     cout << "Disconnected." << endl;
+	count_thread.join();
 }

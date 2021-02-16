@@ -2,6 +2,7 @@
 #include <csignal>
 #include <ctime>
 #include <mutex>
+#include <thread>
 
 #include "TCPClient.h"
 
@@ -22,4 +23,5 @@ private:
     bool server_state;
     void count_loop();
 	std::mutex mt;
+    std::thread count_thread;
 };

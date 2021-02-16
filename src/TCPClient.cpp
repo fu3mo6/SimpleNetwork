@@ -27,7 +27,7 @@ void TCPClient::loop()
 	}
 }
 
-bool TCPClient::setup(std::string address , int port)
+bool TCPClient::_setup(std::string address , int port)
 {
   	if(sock == -1)
 	{
@@ -65,10 +65,19 @@ bool TCPClient::setup(std::string address , int port)
 		perror("connect failed. Error");
 		return false;
   	}
-	
-	connected = true;
-	on_connect();
-  	return true;
+	return true;
+}
+
+bool TCPClient::setup(std::string address , int port)
+{
+	if (_setup(address, port))
+	{
+		connected = true;
+		on_connect();
+		return true;
+	}
+	else 
+  		return false;
 }
 
 bool TCPClient::send_msg(std::string data)

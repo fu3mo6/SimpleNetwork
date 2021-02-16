@@ -4,60 +4,88 @@
 
 #include "CountClient.h"
 
-/*
-class MockCountServer : public CountServer
+class MockCountClient : public CountClient
 {
 public:
-    MOCK_METHOD(void, broadcast_msg, (std::string), (override));
-    MOCK_METHOD(void, send_msg, (int, std::string), (override));
+    MOCK_METHOD(bool, _setup, (std::string, int), (override));
+    MOCK_METHOD(bool, send_msg, (std::string), (override));
 };
 
-TEST(CountServer, CountServer) {
-    CountServer server;
-    EXPECT_EQ(-1, server.get_state());
-    EXPECT_EQ(-1, server.get_timeout());
+TEST(CountClient, CountEverySecond) {
+    MockCountClient client;
+    EXPECT_CALL(client, _setup).WillOnce(testing::Return(true));
+    EXPECT_CALL(client, send_msg).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(client, send_msg).Times(3);
+
+    EXPECT_EQ(true, client.setup("AAA", 123));
+    EXPECT_EQ(true, client.is_connected());
+
+    sleep(3);
+    client.shutdown();
+    EXPECT_EQ(false, client.is_connected());
 }
 
-TEST(CountServer, on_recv_normal_count) {
-    MockCountServer server;
-    EXPECT_CALL(server, send_msg(1, std::string("ack"))).Times(1);
+TEST(CountClient, StopCountIfInactive) {
+    MockCountClient client;
+    EXPECT_CALL(client, _setup).WillOnce(testing::Return(true));
+    EXPECT_CALL(client, send_msg).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(client, send_msg).Times(3);
 
-    server.on_recv(1, std::string("1"));
+    EXPECT_EQ(true, client.setup("AAA", 123));
+    EXPECT_EQ(true, client.is_connected());
 
-    EXPECT_EQ(-1, server.get_state());
-    EXPECT_EQ(-1, server.get_timeout());
+    sleep(3);
+    client.on_recv("inactive");
+    sleep(3);
+
+    client.shutdown();
 }
 
-TEST(CountServer, on_recv_prime_count) {
-    MockCountServer server;
-    EXPECT_CALL(server, send_msg(1, std::string("ack"))).Times(1);
+TEST(CountClient, RestartCountIfActive) {
+    MockCountClient client;
+    EXPECT_CALL(client, _setup).WillOnce(testing::Return(true));
+    EXPECT_CALL(client, send_msg).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(client, send_msg).Times(6);
 
-    server.on_recv(1, std::string("3"));
+    EXPECT_EQ(true, client.setup("AAA", 123));
+    EXPECT_EQ(true, client.is_connected());
 
-    EXPECT_EQ(1, server.get_state());
-    EXPECT_EQ(6, server.get_timeout());
+    sleep(3);
+    client.on_recv("inactive");
+    sleep(3);
+    client.on_recv("active");
+    sleep(3);
+
+    client.shutdown();
 }
 
-TEST(CountServer, on_recv_reject) {
-    MockCountServer server;
-    EXPECT_CALL(server, send_msg(1, std::string("ack"))).Times(1);
-    EXPECT_CALL(server, send_msg(2, std::string("inactive"))).Times(1);
+TEST(CountClient, AddCountIfAck) {
+    MockCountClient client;
+    EXPECT_CALL(client, _setup).WillOnce(testing::Return(true));
+    EXPECT_CALL(client, send_msg).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(client, send_msg("3"));
 
-    server.on_recv(1, std::string("3"));
-    server.on_recv(2, std::string("3"));
+    EXPECT_EQ(true, client.setup("AAA", 123));
+    EXPECT_EQ(true, client.is_connected());
 
-    EXPECT_EQ(1, server.get_state());
-    EXPECT_EQ(6, server.get_timeout());
+    client.on_recv("ack");
+    client.on_recv("ack");
+    client.on_recv("ack");
+    sleep(1);
+
+    client.shutdown();
 }
 
-TEST(CountServer, on_recv_prime_count_recover) {
-    MockCountServer server;
-    EXPECT_CALL(server, send_msg(1, std::string("ack"))).Times(2);
-    EXPECT_CALL(server, broadcast_msg(std::string("active"))).Times(1);
+TEST(CountClient, ShutdownIfReceiveShutdown) {
+    MockCountClient client;
+    EXPECT_CALL(client, _setup).WillOnce(testing::Return(true));
+    EXPECT_CALL(client, send_msg).WillRepeatedly(testing::Return(true));
 
-    server.on_recv(1, std::string("3"));
-    server.on_recv(1, std::string("6"));
+    EXPECT_EQ(true, client.setup("AAA", 123));
+    EXPECT_EQ(true, client.is_connected());
 
-    EXPECT_EQ(-1, server.get_state());
-    EXPECT_EQ(-1, server.get_timeout());
-}*/
+    sleep(1);
+    client.on_recv("shutdown");
+    sleep(1);
+    EXPECT_EQ(false, client.is_connected());
+}

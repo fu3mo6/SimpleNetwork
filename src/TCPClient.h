@@ -38,6 +38,8 @@ private:
     int port;
     struct sockaddr_in server;
     bool connected;
+
+    virtual bool _setup(std::string address, int port);
 };
 
 #endif
