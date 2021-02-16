@@ -15,6 +15,7 @@ public:
 	void on_accept(int id) override;
 	void on_recv(int id, std::string msg) override;
 	void on_disconnect(int id) override;
+    void on_shutdown() override;
 
     int get_state() { return state; }
     int get_timeout() { return count_timeout; }

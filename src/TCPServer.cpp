@@ -16,7 +16,7 @@ void TCPServer::client_loop(descript_socket *desc)
 		{
 			if(n==0)
 			{
-				cout << "close client[ id:"<< desc->id 
+				cout << "client closed [ id:"<< desc->id 
 					<<" ip:"<< desc->ip 
 					<<" socket:"<< desc->socket<<" ]" << endl;
 				
@@ -116,6 +116,7 @@ void TCPServer::detach(int id)
 
 void TCPServer::shutdown() 
 {
+	on_shutdown();
 	close(sockfd);
 }
 

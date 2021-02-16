@@ -42,6 +42,11 @@ void CountServer::on_disconnect(int id)
     }
 }
 
+void CountServer::on_shutdown()
+{
+    broadcast_msg("shutdown");
+}
+
 bool CountServer::handle_count(int id, int count)
 {
 	std::string msg = "";

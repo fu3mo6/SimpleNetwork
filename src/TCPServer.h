@@ -41,6 +41,7 @@ public:
 	virtual void on_accept(int id) {}
 	virtual void on_recv(int id, std::string msg) {}
 	virtual void on_disconnect(int id) {}
+	virtual void on_shutdown() {}
 
 	virtual void send_msg(int id, std::string msg);
 	virtual void broadcast_msg(std::string msg);
