@@ -3,7 +3,6 @@
 #include "gmock/gmock.h"
 
 #include "CountServer.h"
-#include "../src/TCPServer.h"
 
 class MockCountServer : public CountServer
 {

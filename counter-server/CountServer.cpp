@@ -18,19 +18,19 @@ bool isPrime(int n)
 
 void CountServer::on_accept(int id)
 {
-	cout << "Id [ " << id << " ] Connection accepted" << endl;
+	cout << "Client ID [ " << id << " ] Connection accepted" << endl;
 }
 
 void CountServer::on_recv(int id, std::string msg)
 {
     int count = stoi(msg);
     if (handle_count(id, count))
-        cout << "Recv [ " << id << " ] [ " << msg << " ] [ " << state << " ]" << endl;
+        cout << "Client ID [ " << id << " ] count [ " << msg << " ]" << endl;
 }
 
 void CountServer::on_disconnect(int id)
 {
-    cout << "Id [ " << id << " ] Disconnected" << endl;
+    cout << "Client ID [ " << id << " ] Disconnected" << endl;
     if(state == id)
     {
 	    {

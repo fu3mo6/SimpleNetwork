@@ -5,5 +5,8 @@ OUT=-o libSimpleNetwork.so -fPIC -shared
 
 all:
 	$(CC) $(FLAGS) $(SRC) $(OUT)
-	$(CC) -c $(SRC)
+	$(CC) -c $(FLAGS) $(SRC)
 	ar rcs libSimpleNetwork.a *.o
+
+clean:
+	rm *.a *.so *.o

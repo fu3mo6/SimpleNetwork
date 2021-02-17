@@ -3,10 +3,6 @@
 
 void TCPServer::client_loop(descript_socket *desc)
 {
-    cout << "open client[ id:"<< desc->id
-		 <<" ip:"<< desc->ip
-		 <<" socket:"<< desc->socket << " ]" << endl;
-
 	int n;
 	char msg[MAXPACKETSIZE];
 	while(1)
@@ -16,10 +12,6 @@ void TCPServer::client_loop(descript_socket *desc)
 		{
 			if(n==0)
 			{
-				cout << "client closed [ id:"<< desc->id 
-					<<" ip:"<< desc->ip 
-					<<" socket:"<< desc->socket<<" ]" << endl;
-				
 				on_disconnect(desc->id);
 				close(desc->socket);
 				client_sock.erase(desc->id);
@@ -34,8 +26,6 @@ void TCPServer::client_loop(descript_socket *desc)
 
 	if(desc != NULL)
 		free(desc);
-
-	cerr << "exit thread: " << this_thread::get_id() << endl;
 }
 
 int TCPServer::setup(int port, vector<int> opts)
@@ -82,10 +72,6 @@ void TCPServer::loop()
 		so->id              = unique_id ++ ;
 		so->ip              = inet_ntoa(clientAddress.sin_addr);
 		client_sock[so->id] = so;
-
-		cerr << "accept client[ id:" << so->id << 
-							" ip:" << so->ip << 
-						" handle:" << so->socket << " ]" << endl;
 		
 		on_accept(so->id);
 		std::thread cthread(&TCPServer::client_loop, this, so);
