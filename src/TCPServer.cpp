@@ -4,26 +4,15 @@
 void TCPServer::ClientLoop(descript_socket *desc)
 {
 	int n;
-	int r;
 	char msg[MAXPACKETSIZE];
-	while(1)
+	while(desc->connected)
 	{
 		n = recv(desc->socket, msg, MAXPACKETSIZE, 0);
 		if(n != -1) 
 		{
 			if(n==0)
 			{
-				on_disconnect(desc->id);
-#ifdef WINDOWS
-				r = shutdown(desc->socket, SD_SEND);
-				if (r == SOCKET_ERROR) {
-					printf("shutdown failed with error: %d\n", WSAGetLastError());
-				}
-				closesocket(desc->socket);
-#else
-				close(desc->socket);
-#endif
-				client_sock.erase(desc->id);
+				desc->connected = false;
 				break;
 			}
 			else {
@@ -33,6 +22,14 @@ void TCPServer::ClientLoop(descript_socket *desc)
 		usleep(600);
     }
 
+	on_disconnect(desc->id);
+#ifdef WINDOWS
+	closesocket(desc->socket);
+#else
+	close(desc->socket);
+#endif
+
+	client_sock.erase(desc->id);
 	if(desc != NULL)
 		free(desc);
 }
@@ -84,13 +81,14 @@ int TCPServer::Setup(int port)
 		cerr << "Errore listen" << endl;
 		return -1;
 	}
+	connected = true;
 	return 0;
 }
 
 void TCPServer::Loop()
 {
 	socklen_t sosize    = sizeof(clientAddress);
-	while(1)
+	while(connected)
 	{
 #ifndef WINDOWS		
 		int new_client_so 	= accept(sockfd, (struct sockaddr*)&clientAddress, &sosize);
@@ -102,12 +100,26 @@ void TCPServer::Loop()
 		so->socket          = new_client_so;
 		so->id              = unique_id ++ ;
 		so->ip              = inet_ntoa(clientAddress.sin_addr);
+		so->connected		= true;
 		client_sock[so->id] = so;
 		
 		on_accept(so->id);
 		std::thread cthread(&TCPServer::ClientLoop, this, so);
 		cthread.detach();
 	}
+
+	while(!client_sock.empty())
+	{
+		cout << "Wait for client socket cleanup" << endl;
+		sleep(1);
+	}
+
+#ifndef WINDOWS	
+	close(sockfd);
+#else
+    closesocket(sockfd);
+    WSACleanup();
+#endif
 }
 
 void TCPServer::SendMsg(int id, std::string msg)
@@ -134,19 +146,12 @@ void TCPServer::detach(int id)
 void TCPServer::Shutdown() 
 {
 	on_shutdown();
-#ifndef WINDOWS	
-	close(sockfd);
-#else
-
 	for(auto it = client_sock.begin(); it != client_sock.end(); it++)
 	{
+		it->second->connected = false;
+#ifdef WINDOWS
 		shutdown(it->second->socket, SD_SEND);
-	}
-	// FREE MEMORY
-
-	shutdown(sockfd, SD_SEND);
-    closesocket(sockfd);
-    WSACleanup();
 #endif
+	}
 }
 

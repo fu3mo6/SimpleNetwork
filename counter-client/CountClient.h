@@ -13,6 +13,7 @@ public:
         counter = 0;
         server_state = true;
     }
+    ~CountClient();
 
 	void on_connect() override;
 	void on_recv(std::string msg) override;

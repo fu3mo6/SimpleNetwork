@@ -5,6 +5,11 @@
 #include <thread>
 #include "CountClient.h"
 
+CountClient::~CountClient()
+{
+	count_thread.join();
+}
+
 void CountClient::count_loop()
 {
     std::string msg;
@@ -51,5 +56,4 @@ void CountClient::on_recv(std::string msg)
 void CountClient::on_disconnect()
 {
     cout << "Disconnected." << endl;
-	count_thread.join();
 }

@@ -39,6 +39,7 @@ struct descript_socket{
 #endif
 	string ip      = "";
 	int id         = -1;
+	bool connected = false;
 };
 
 class TCPServer
@@ -70,6 +71,7 @@ private:
 
 	unordered_map<int, descript_socket*> client_sock;
 	int unique_id;
+	bool connected;
 };
 
 #endif

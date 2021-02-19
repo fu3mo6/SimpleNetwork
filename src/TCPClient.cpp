@@ -25,6 +25,13 @@ void TCPClient::Loop()
 		}
 		usleep(1000);
 	}
+
+#ifndef WINDOWS
+    close( sock );
+#else
+    closesocket(sock);
+    WSACleanup();
+#endif
 }
 
 #ifdef WINDOWS
@@ -138,7 +145,7 @@ std::string TCPClient::RecvMsg()
   	}
 	if(r == 0){
 		cout << "Connection closed" << endl;
-		connected = 0;
+		connected = false;
 		return "";
 	}
 
@@ -166,11 +173,8 @@ void TCPClient::Shutdown()
 {
 	connected = false;
 	on_disconnect();
-#ifndef WINDOWS
-    close( sock );
-#else
+
+#ifdef WINDOWS
 	shutdown(sock, SD_SEND);
-    closesocket(sock);
-    WSACleanup();
 #endif
 }
