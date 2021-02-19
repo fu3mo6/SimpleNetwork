@@ -47,7 +47,7 @@ class TCPServer
 public:
 	int Setup(int port);
 	void Loop();
-	void ClientLoop(descript_socket *desc);
+	void ClientLoop(std::shared_ptr<descript_socket> desc);
 
 	virtual void on_accept(int id) {}
 	virtual void on_recv(int id, std::string msg) {}
@@ -69,7 +69,7 @@ private:
 	sockaddr_in clientAddress;
 #endif
 
-	unordered_map<int, descript_socket*> client_sock;
+	unordered_map<int, std::shared_ptr<descript_socket>> client_sock;
 	int unique_id;
 	bool connected;
 };

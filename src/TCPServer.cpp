@@ -1,7 +1,7 @@
 #include <string>
 #include "TCPServer.h" 
 
-void TCPServer::ClientLoop(descript_socket *desc)
+void TCPServer::ClientLoop(std::shared_ptr<descript_socket> desc)
 {
 	int n;
 	char msg[MAXPACKETSIZE];
@@ -30,8 +30,6 @@ void TCPServer::ClientLoop(descript_socket *desc)
 #endif
 
 	client_sock.erase(desc->id);
-	if(desc != NULL)
-		free(desc);
 }
 
 int TCPServer::Setup(int port)
@@ -96,11 +94,11 @@ void TCPServer::Loop()
 		SOCKET new_client_so = accept(sockfd, (SOCKADDR*)&clientAddress, &sosize);
 #endif
 
-		descript_socket *so = new descript_socket;
-		so->socket          = new_client_so;
-		so->id              = unique_id ++ ;
-		so->ip              = inet_ntoa(clientAddress.sin_addr);
-		so->connected		= true;
+		auto so = std::make_shared<descript_socket>();
+		so->socket = new_client_so;
+		so->id = unique_id ++ ;
+		so->ip = inet_ntoa(clientAddress.sin_addr);
+		so->connected = true;
 		client_sock[so->id] = so;
 		
 		on_accept(so->id);
