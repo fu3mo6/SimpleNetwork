@@ -6,12 +6,20 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+
 #include <sys/types.h>
+
+#ifndef WINDOWS
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-#include <netdb.h> 
+#else
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#pragma comment(lib, "WS2_32.lib")
+#endif
+
 #include <vector>
 
 using namespace std;
@@ -28,15 +36,19 @@ public:
 
     virtual bool send_msg(std::string msg);
     virtual std::string receive_msg();
-    void shutdown();
+    void do_shutdown();
 
     bool is_connected() { return connected; }
 
 private:
+#ifndef WINDOWS
     int sock;
+    struct sockaddr_in server;
+#else
+    SOCKET sock;
+#endif
     std::string address;
     int port;
-    struct sockaddr_in server;
     bool connected;
 
     virtual bool _setup(std::string address, int port);

@@ -6,7 +6,7 @@
 EchoServer tcp;
 
 void close_app(int s) {
-	tcp.shutdown();
+	tcp.do_shutdown();
 	exit(0);
 }
 
@@ -18,9 +18,8 @@ int main(int argc, char **argv)
 	}
 
 	std::signal(SIGINT, close_app);
-    vector<int> opts = { SO_REUSEPORT, SO_REUSEADDR };
 
-	if( tcp.setup(atoi(argv[1]),opts) == 0) {
+	if( tcp.setup(atoi(argv[1])) == 0) {
 		tcp.loop();
 	}
 	else {

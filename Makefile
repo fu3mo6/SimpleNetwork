@@ -1,10 +1,12 @@
 TOPTARGETS := all clean
 
 #SUBDIRS := $(wildcard */.)
-SUBDIRS := src counter-client counter-server
+SUBDIRS := src echo-server counter-server counter-client 
+
+PLATFORM ?= LINUX
 
 $(TOPTARGETS): $(SUBDIRS)
 $(SUBDIRS):
-	$(MAKE) -C $@ $(MAKECMDGOALS)
+	PLATFORM=$(PLATFORM) $(MAKE) -C $@ $(MAKECMDGOALS)
 
 .PHONY: $(TOPTARGETS) $(SUBDIRS)

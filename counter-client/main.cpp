@@ -6,7 +6,7 @@
 CountClient client;
 
 void close_app(int s) {
-	client.shutdown();
+	client.do_shutdown();
 	exit(0);
 }
 

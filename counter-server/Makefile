@@ -19,16 +19,24 @@ CXXFLAGS += -DCONFIG_DEBUG
 endif
 
 # Compile option
-CXXFLAGS += -Wall -std=c++11 -I ../src/
+CXXFLAGS += -I ../src/
 
-LDFLAGS += -pthread ../src/libSimpleNetwork.so
+LDFLAGS += -pthread ../src/libSimpleNetwork.a
+
+ifeq ($(PLATFORM),WINDOWS)
+CXXFLAGS += -DWINDOWS
+LDFLAGS += -lws2_32
+endif
+
+ifeq ($(PLATFORM),LINUX)
+UNIT_TEST = unit_test
+endif
 
 EXES = server
-UNIT_TEST = unit_test
 
 .PHONY: build clean
 
-build : clean $(EXES) $(UNIT_TEST)
+build : clean $(UNIT_TEST) $(EXES)
 
 $(EXES): main.o $(OBJS)
 	$(CXX) $(CXXFLAGS) $^ -o $@  $(LDFLAGS)
@@ -40,7 +48,11 @@ $(UNIT_TEST): ut_main.o $(OBJS) $(UT_OBJS)
 	$(CXX) $(CXXFLAGS) $^ -o $@	
 
 clean :
-	rm -f *.o $(OBJS) $(EXES)
+ifeq ($(PLATFORM),WINDOWS)
+	del *.o $(EXES)
+else
+	rm -rf *.o $(EXES)
+endif
 
 #all: 
 #	g++ -Wall -o server server.cpp -I../src/ ../src/TCPServer.cpp ../src/TCPClient.cpp -std=c++11 -lpthread

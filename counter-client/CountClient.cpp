@@ -45,7 +45,7 @@ void CountClient::on_recv(std::string msg)
 		server_state = false;
 
 	if(msg.find("shutdown") != std::string::npos)
-		shutdown();
+		do_shutdown();
 }
 
 void CountClient::on_disconnect()

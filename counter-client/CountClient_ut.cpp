@@ -21,7 +21,7 @@ TEST(CountClient, CountEverySecond) {
     EXPECT_EQ(true, client.is_connected());
 
     sleep(3);
-    client.shutdown();
+    client.do_shutdown();
     EXPECT_EQ(false, client.is_connected());
 }
 
@@ -38,7 +38,7 @@ TEST(CountClient, StopCountIfInactive) {
     client.on_recv("inactive");
     sleep(3);
 
-    client.shutdown();
+    client.do_shutdown();
 }
 
 TEST(CountClient, RestartCountIfActive) {
@@ -56,7 +56,7 @@ TEST(CountClient, RestartCountIfActive) {
     client.on_recv("active");
     sleep(3);
 
-    client.shutdown();
+    client.do_shutdown();
 }
 
 TEST(CountClient, AddCountIfAck) {
@@ -73,7 +73,7 @@ TEST(CountClient, AddCountIfAck) {
     client.on_recv("ack");
     sleep(1);
 
-    client.shutdown();
+    client.do_shutdown();
 }
 
 TEST(CountClient, ShutdownIfReceiveShutdown) {

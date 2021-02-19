@@ -4,6 +4,7 @@
 void TCPServer::client_loop(descript_socket *desc)
 {
 	int n;
+	int r;
 	char msg[MAXPACKETSIZE];
 	while(1)
 	{
@@ -13,7 +14,15 @@ void TCPServer::client_loop(descript_socket *desc)
 			if(n==0)
 			{
 				on_disconnect(desc->id);
+#ifdef WINDOWS
+				r = shutdown(desc->socket, SD_SEND);
+				if (r == SOCKET_ERROR) {
+					printf("shutdown failed with error: %d\n", WSAGetLastError());
+				}
+				closesocket(desc->socket);
+#else
 				close(desc->socket);
+#endif
 				client_sock.erase(desc->id);
 				break;
 			}
@@ -28,11 +37,13 @@ void TCPServer::client_loop(descript_socket *desc)
 		free(desc);
 }
 
-int TCPServer::setup(int port, vector<int> opts)
+int TCPServer::setup(int port)
 {
-	int opt = 1;
-
 	unique_id = 0;
+
+#ifndef WINDOWS
+	int opt = 1;
+    vector<int> opts = { SO_REUSEPORT, SO_REUSEADDR };
 	sockfd = socket(AF_INET,SOCK_STREAM,0);
  	memset(&serverAddress,0,sizeof(serverAddress));
 
@@ -52,11 +63,27 @@ int TCPServer::setup(int port, vector<int> opts)
 		return -1;
 	}
 	
- 	if(listen(sockfd,5) < 0){
+#else
+    WSADATA wsaData;
+    SOCKADDR_IN addr;
+
+    // Initialize Winsock
+    WSAStartup(MAKEWORD(2,2), &wsaData);
+
+    //設定位址資訊的資料
+    addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(port);
+ 
+    //設定 Listen
+    sockfd = socket(AF_INET, SOCK_STREAM, NULL);
+    bind(sockfd, (SOCKADDR*)&addr, sizeof(addr));
+#endif
+
+ 	if(listen(sockfd,20) < 0){
 		cerr << "Errore listen" << endl;
 		return -1;
 	}
-	
 	return 0;
 }
 
@@ -65,7 +92,11 @@ void TCPServer::loop()
 	socklen_t sosize    = sizeof(clientAddress);
 	while(1)
 	{
-		int new_client_so 	= accept(sockfd,(struct sockaddr*)&clientAddress,&sosize);
+#ifndef WINDOWS		
+		int new_client_so 	= accept(sockfd, (struct sockaddr*)&clientAddress, &sosize);
+#else
+		SOCKET new_client_so = accept(sockfd, (SOCKADDR*)&clientAddress, &sosize);
+#endif
 
 		descript_socket *so = new descript_socket;
 		so->socket          = new_client_so;
@@ -100,9 +131,22 @@ void TCPServer::detach(int id)
 	newsockfd[id]->message = "";
 } */
 
-void TCPServer::shutdown() 
+void TCPServer::do_shutdown() 
 {
 	on_shutdown();
+#ifndef WINDOWS	
 	close(sockfd);
+#else
+
+	for(auto it = client_sock.begin(); it != client_sock.end(); it++)
+	{
+		shutdown(it->second->socket, SD_SEND);
+	}
+	// FREE MEMORY
+
+	shutdown(sockfd, SD_SEND);
+    closesocket(sockfd);
+    WSACleanup();
+#endif
 }
 

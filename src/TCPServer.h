@@ -8,11 +8,17 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/types.h> 
+
+#ifndef WINDOWS
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <string.h>
 #include <arpa/inet.h>
-#include <pthread.h>
+#else
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#pragma comment(lib, "WS2_32.lib")
+#endif
+
 #include <thread>
 #include <algorithm>
 #include <cctype>
@@ -26,7 +32,11 @@ using namespace std;
 //#define CODA_MSG 4
 
 struct descript_socket{
+#ifndef WINDOWS
 	int socket     = -1;
+#else
+	SOCKET socket;
+#endif
 	string ip      = "";
 	int id         = -1;
 };
@@ -34,7 +44,7 @@ struct descript_socket{
 class TCPServer
 {
 public:
-	int setup(int port, vector<int> opts = vector<int>());
+	int setup(int port);
 	void loop();
 	void client_loop(descript_socket *desc);
 
@@ -45,12 +55,18 @@ public:
 
 	virtual void send_msg(int id, std::string msg);
 	virtual void broadcast_msg(std::string msg);
-	void shutdown();
+	void do_shutdown();
 
 private:
+#ifndef WINDOWS
 	int sockfd;
 	struct sockaddr_in serverAddress;
 	struct sockaddr_in clientAddress;
+#else
+	SOCKET sockfd;
+	sockaddr_in serverAddress;
+	sockaddr_in clientAddress;
+#endif
 
 	unordered_map<int, descript_socket*> client_sock;
 	int unique_id;

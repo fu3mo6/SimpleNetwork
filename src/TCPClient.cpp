@@ -27,7 +27,33 @@ void TCPClient::loop()
 	}
 }
 
-bool TCPClient::_setup(std::string address , int port)
+#ifdef WINDOWS
+bool TCPClient::_setup(std::string address, int port)
+{
+    WSAData wsaData;
+    WSAStartup( MAKEWORD(2,2), &wsaData);
+
+    SOCKADDR_IN addr;
+    int addlen = sizeof(addr);
+ 
+    sock = socket(AF_INET, SOCK_STREAM, NULL);
+ 
+    //設定 addr 資料
+    addr.sin_addr.s_addr = inet_addr(address.c_str());
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(port);
+ 
+	if (connect(sock, (SOCKADDR*)&addr, sizeof(addr)) < 0)
+	{
+		perror("connect failed. Error");
+		return false;
+	}
+
+	return true;
+}
+
+#else
+bool TCPClient::_setup(std::string address, int port)
 {
   	if(sock == -1)
 	{
@@ -67,6 +93,7 @@ bool TCPClient::_setup(std::string address , int port)
   	}
 	return true;
 }
+#endif
 
 bool TCPClient::setup(std::string address , int port)
 {
@@ -101,11 +128,20 @@ std::string TCPClient::receive_msg()
 	memset(&buffer[0], 0, sizeof(buffer));
 
   	std::string reply;
-	if(recv(sock , buffer , MAX_RECV_SIZE, 0) < 0)
+	int r;
+
+	r = recv(sock , buffer , MAX_RECV_SIZE, 0);
+	if(r < 0)
   	{
 	    cout << "receive failed!" << endl;
-		return nullptr;
+		return "";
   	}
+	if(r == 0){
+		cout << "Connection closed" << endl;
+		connected = 0;
+		return "";
+	}
+
 	buffer[MAX_RECV_SIZE-1]='\0';
   	reply = buffer;
   	return reply;
@@ -126,9 +162,15 @@ string TCPClient::read()
 	return reply;
 }*/
 
-void TCPClient::shutdown()
+void TCPClient::do_shutdown()
 {
 	connected = false;
 	on_disconnect();
+#ifndef WINDOWS
     close( sock );
+#else
+	shutdown(sock, SD_SEND);
+    closesocket(sock);
+    WSACleanup();
+#endif
 }
