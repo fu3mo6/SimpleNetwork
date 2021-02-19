@@ -14,7 +14,7 @@ public:
 	void on_recv(int id, std::string msg) override
 	{
 		cout << "Recv [ " << id << " ] [ " << msg << " ]" << endl;
-		send_msg(id, msg);
+		SendMsg(id, msg);
 	}
 
 	void on_disconnect(int id) override

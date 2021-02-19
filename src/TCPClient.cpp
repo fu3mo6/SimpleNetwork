@@ -15,10 +15,10 @@ TCPClient::TCPClient()
 	connected = false;
 }
 
-void TCPClient::loop()
+void TCPClient::Loop()
 {
 	while(connected) {
-		std::string rec = this->receive_msg();
+		std::string rec = this->RecvMsg();
 		if (rec != "")
 		{
 			on_recv(rec);
@@ -95,7 +95,7 @@ bool TCPClient::_setup(std::string address, int port)
 }
 #endif
 
-bool TCPClient::setup(std::string address , int port)
+bool TCPClient::Setup(std::string address , int port)
 {
 	if (_setup(address, port))
 	{
@@ -107,7 +107,7 @@ bool TCPClient::setup(std::string address , int port)
   		return false;
 }
 
-bool TCPClient::send_msg(std::string data)
+bool TCPClient::SendMsg(std::string data)
 {
 	if(sock != -1) 
 	{
@@ -122,7 +122,7 @@ bool TCPClient::send_msg(std::string data)
 	return true;
 }
 
-std::string TCPClient::receive_msg()
+std::string TCPClient::RecvMsg()
 {
   	char buffer[MAX_RECV_SIZE];
 	memset(&buffer[0], 0, sizeof(buffer));
@@ -162,7 +162,7 @@ string TCPClient::read()
 	return reply;
 }*/
 
-void TCPClient::do_shutdown()
+void TCPClient::Shutdown()
 {
 	connected = false;
 	on_disconnect();

@@ -6,7 +6,7 @@
 CountClient client;
 
 void close_app(int s) {
-	client.do_shutdown();
+	client.Shutdown();
 	exit(0);
 }
 
@@ -19,8 +19,8 @@ int main(int argc, char **argv)
 
 	std::signal(SIGINT, close_app);
 
-	if(client.setup(argv[1],atoi(argv[2])))
-		client.loop();
+	if(client.Setup(argv[1],atoi(argv[2])))
+		client.Loop();
 	else
 		cout << "Setup failed." << endl;
 

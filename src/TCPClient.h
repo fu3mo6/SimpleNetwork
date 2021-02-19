@@ -27,18 +27,18 @@ class TCPClient
 {
 public:
     TCPClient();
-    bool setup(std::string address, int port);
-    void loop();
+    bool Setup(std::string address, int port);
+    void Loop();
 
     virtual void on_connect() {}
     virtual void on_recv(std::string msg) {}
     virtual void on_disconnect() {}
 
-    virtual bool send_msg(std::string msg);
-    virtual std::string receive_msg();
-    void do_shutdown();
+    virtual bool SendMsg(std::string msg);
+    virtual std::string RecvMsg();
+    void Shutdown();
 
-    bool is_connected() { return connected; }
+    bool IsConnected() { return connected; }
 
 private:
 #ifndef WINDOWS

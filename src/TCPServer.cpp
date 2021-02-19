@@ -1,7 +1,7 @@
 #include <string>
 #include "TCPServer.h" 
 
-void TCPServer::client_loop(descript_socket *desc)
+void TCPServer::ClientLoop(descript_socket *desc)
 {
 	int n;
 	int r;
@@ -37,7 +37,7 @@ void TCPServer::client_loop(descript_socket *desc)
 		free(desc);
 }
 
-int TCPServer::setup(int port)
+int TCPServer::Setup(int port)
 {
 	unique_id = 0;
 
@@ -87,7 +87,7 @@ int TCPServer::setup(int port)
 	return 0;
 }
 
-void TCPServer::loop()
+void TCPServer::Loop()
 {
 	socklen_t sosize    = sizeof(clientAddress);
 	while(1)
@@ -105,21 +105,21 @@ void TCPServer::loop()
 		client_sock[so->id] = so;
 		
 		on_accept(so->id);
-		std::thread cthread(&TCPServer::client_loop, this, so);
+		std::thread cthread(&TCPServer::ClientLoop, this, so);
 		cthread.detach();
 	}
 }
 
-void TCPServer::send_msg(int id, std::string msg)
+void TCPServer::SendMsg(int id, std::string msg)
 {
 	send(client_sock[id]->socket, msg.c_str(), msg.length(), 0);
 }
 
-void TCPServer::broadcast_msg(std::string msg)
+void TCPServer::BroadcastMsg(std::string msg)
 {
 	for(auto it = client_sock.begin(); it != client_sock.end(); it++)
 	{
-		send_msg(it->second->id, msg);
+		SendMsg(it->second->id, msg);
 	}
 }
 /*
@@ -131,7 +131,7 @@ void TCPServer::detach(int id)
 	newsockfd[id]->message = "";
 } */
 
-void TCPServer::do_shutdown() 
+void TCPServer::Shutdown() 
 {
 	on_shutdown();
 #ifndef WINDOWS	

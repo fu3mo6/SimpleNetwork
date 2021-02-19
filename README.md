@@ -23,4 +23,4 @@ cd counter-client
 ./client 127.0.0.1 $(PORT_NUMBER)
 ```
 
-3. Check the count status from count-server
+3. Check count status from count-server

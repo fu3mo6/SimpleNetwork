@@ -8,7 +8,7 @@
 void CountClient::count_loop()
 {
     std::string msg;
-	while(is_connected()) {
+	while(IsConnected()) {
 		if(server_state)
 		{
             {
@@ -16,7 +16,7 @@ void CountClient::count_loop()
                 msg = to_string(counter);
             }
 
-            send_msg(msg);
+            SendMsg(msg);
             cout << "send " << msg << endl;
 			sleep(1);
 		}
@@ -45,7 +45,7 @@ void CountClient::on_recv(std::string msg)
 		server_state = false;
 
 	if(msg.find("shutdown") != std::string::npos)
-		do_shutdown();
+		Shutdown();
 }
 
 void CountClient::on_disconnect()

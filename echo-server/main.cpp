@@ -6,7 +6,7 @@
 EchoServer tcp;
 
 void close_app(int s) {
-	tcp.do_shutdown();
+	tcp.Shutdown();
 	exit(0);
 }
 
@@ -19,8 +19,8 @@ int main(int argc, char **argv)
 
 	std::signal(SIGINT, close_app);
 
-	if( tcp.setup(atoi(argv[1])) == 0) {
-		tcp.loop();
+	if( tcp.Setup(atoi(argv[1])) == 0) {
+		tcp.Loop();
 	}
 	else {
 		cerr << "Error setup server" << endl;

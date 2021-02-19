@@ -38,13 +38,13 @@ void CountServer::on_disconnect(int id)
             state = -1;
             count_timeout = -1;
         }
-        broadcast_msg("active");
+        BroadcastMsg("active");
     }
 }
 
 void CountServer::on_shutdown()
 {
-    broadcast_msg("shutdown");
+    BroadcastMsg("shutdown");
 }
 
 bool CountServer::handle_count(int id, int count)
@@ -81,9 +81,9 @@ bool CountServer::handle_count(int id, int count)
         }
     }
 
-	send_msg(id, msg);
+	SendMsg(id, msg);
     if(bcast != "")
-        broadcast_msg(bcast);
+        BroadcastMsg(bcast);
     
     return accept;
 }
