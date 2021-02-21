@@ -37,11 +37,7 @@ $(EXES): main.o $(OBJS)
 	$(CXX) $(CXXFLAGS) $^ -o $@	
 
 clean :
-ifeq ($(PLATFORM),WINDOWS)
-	del *.o $(EXES)
-else
-	rm -rf *.o $(EXES)
-endif
+	$(RM) *.o $(EXES)
 
 
 #all: 

@@ -48,11 +48,7 @@ $(UNIT_TEST): ut_main.o $(OBJS) $(UT_OBJS)
 	$(CXX) $(CXXFLAGS) $^ -o $@	
 
 clean :
-ifeq ($(PLATFORM),WINDOWS)
-	del *.o $(EXES)
-else
-	rm -rf *.o $(EXES)
-endif
+	$(RM) *.o $(EXES)
 
 #all: 
 #	g++ -Wall -o server server.cpp -I../src/ ../src/TCPServer.cpp ../src/TCPClient.cpp -std=c++11 -lpthread
